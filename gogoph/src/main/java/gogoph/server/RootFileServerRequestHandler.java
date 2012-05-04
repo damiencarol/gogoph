@@ -22,7 +22,7 @@ import gogoph.GopherDirectoryEntity;
 import gogoph.GopherMenuTransactionResult;
 import gogoph.GopherTextTransactionResult;
 import gogoph.GopherTransactionResult;
-import gogoph.IGopherRequestHandler;
+import gogoph.GopherRequestHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-public class RootFileServerRequestHandler implements IGopherRequestHandler {
+public class RootFileServerRequestHandler implements GopherRequestHandler {
 
 	private static final Logger logger = Logger.getLogger(
 			RootFileServerRequestHandler.class.getName());
@@ -271,20 +271,6 @@ public class RootFileServerRequestHandler implements IGopherRequestHandler {
 				tab.add(node);
 			}
 		}
-		}
-		
-		// Add internal search node
-		if (selector.equals(""))
-		{
-			GopherDirectoryEntity e = new GopherDirectoryEntity();
-			e.setExtra(null);
-			e.setHost(host);
-			e.setPort(port);
-			e.setSelector(selector + "/search");
-			e.setType("7");
-			e.setUsername("Internal Search");
-			
-			tab.add(e);
 		}
 		
 		// Add nodes

@@ -60,6 +60,7 @@ public class CrawlerBySite {
 		
         // Load seeds from "sites" file
         File textFile = new File("sites");
+        textFile.createNewFile();
         ArrayList<String> tab_host = new ArrayList<String>();
         ArrayList<Integer> tab_port = new ArrayList<Integer>();
         BufferedReader dis = null;
@@ -69,7 +70,10 @@ public class CrawlerBySite {
 	      while ((line = dis.readLine()) != null) {
 
 	    	  tab_host.add(line.split(":")[0]);
-	    	  tab_port.add(new Integer(line.split(":")[1]));
+	    	  if (line.split(":").length > 1)
+	    		  tab_port.add(new Integer(line.split(":")[1]));
+	    	  else
+	    		  tab_port.add(70);
 		  }
 	    } catch(Exception e)
 	    { logger.error(e);
@@ -221,8 +225,13 @@ public class CrawlerBySite {
 		{
 			  if (site.getNbSelector() > 0)
 				  try {
-						  if (InetAddress.getByName(site.getHost()) != null)
-						  disc.write(site.getHost().trim().toLowerCase() + ":" + site.getPort() + "\r\n");
+						  if (InetAddress.getByName(site.getHost()) != null) 
+						  {
+							  disc.write(site.getHost().trim().toLowerCase());
+							  if (site.getPort() != 70)
+								  disc.write(":" + site.getPort());
+							  disc.write("\r\n");
+						  }
 					  } catch(Exception e)
 					 { logger.error(e);}
 				}

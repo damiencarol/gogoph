@@ -45,7 +45,7 @@ public class GopherDirectoryEntity {
 	 * 		String to parse.
 	 * @throws InvalidGopherDirectoryEntityException
 	 */
-	public GopherDirectoryEntity(String line) throws InvalidGopherDirectoryEntityException {
+	public GopherDirectoryEntity(String line) {
 	
 		String[] tab = line.split("\t");		
 		for (int i = 0; i < tab.length; i++)

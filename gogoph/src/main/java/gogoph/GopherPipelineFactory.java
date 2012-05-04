@@ -27,9 +27,9 @@ import org.jboss.netty.handler.codec.string.StringDecoder;
 
 public class GopherPipelineFactory implements ChannelPipelineFactory {
 
-	private IGopherRequestHandler _requestHandler;
+	private GopherRequestHandler _requestHandler;
 
-	public GopherPipelineFactory(IGopherRequestHandler requestHandler) {
+	public GopherPipelineFactory(GopherRequestHandler requestHandler) {
 		_requestHandler = requestHandler;
 	}
 
@@ -45,7 +45,7 @@ public class GopherPipelineFactory implements ChannelPipelineFactory {
 		// Add business logic.
 		// Please note we create a handler for every new channel
 		// because it has state-full properties.
-		pipeline.addLast("handler", new GopherHandler(_requestHandler));
+		pipeline.addLast("handler", new GopherChannelHandler(_requestHandler));
 
 		return pipeline;
 	}

@@ -27,14 +27,14 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
-public class GopherHandler extends SimpleChannelUpstreamHandler {
+public class GopherChannelHandler extends SimpleChannelUpstreamHandler {
 	  
     private static final Logger logger = Logger.getLogger(
-    		GopherHandler.class.getName());
+    		GopherChannelHandler.class.getName());
 
-	private IGopherRequestHandler _requestHandler;
+	private GopherRequestHandler _requestHandler;
     
-    public GopherHandler(IGopherRequestHandler requestHandler) {
+    public GopherChannelHandler(GopherRequestHandler requestHandler) {
     	_requestHandler = requestHandler;
 	}
 

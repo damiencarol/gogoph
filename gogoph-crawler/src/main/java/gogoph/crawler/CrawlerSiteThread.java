@@ -112,9 +112,11 @@ public class CrawlerSiteThread implements Runnable {
 			crawlGeneric(direct, node);
 			return;
 		}
-		else
+		else if (root.getType().equals("0"))
 			crawlGeneric(direct, node);
-
+		
+		else if (root.getType().equals("I"))
+			crawlGeneric(direct, node);
 	}
 
 	private void crawlGeneric(Directory direct, CrawlerSiteNode node) {

@@ -17,7 +17,7 @@
  */
 package gogoph;
 
-public interface IGopherRequestHandler {
+public interface GopherRequestHandler {
 
 	public GopherTransactionResult process(String selector, String queryString);
 
