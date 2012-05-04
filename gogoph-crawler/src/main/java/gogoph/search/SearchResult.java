@@ -1,6 +1,6 @@
 package gogoph.search;
 
-import gogoph.GopherDirectoryEntity;
+import gogoph.crawler.GopherDirectoryEntity;
 
 public class SearchResult {
 	

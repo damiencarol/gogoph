@@ -1,14 +1,16 @@
 package gogoph.validator;
 
-import gogoph.GopherDirectoryEntity;
 import gogoph.crawler.GopherClient;
+import gogoph.crawler.GopherDirectoryEntity;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -24,17 +26,35 @@ public class Validator {
 	public static void main(String[] args) throws URISyntaxException {
 		
 		ArrayList<ValidationPoint> vals = new ArrayList<ValidationPoint>();
-		
-		String preArg = args[0];
+		// Try if it's only host
+		String preArg = null;
+		preArg = args[0];
 		if (!preArg.startsWith("gopher://"))
 		{
 			preArg = "gopher://" + preArg;
 		}
-		if (!preArg.endsWith("/"))
+		boolean error = false;
+		try 
 		{
-			preArg += "/";
+			URL mine = new URL(args[0]);
+			preArg = mine.toString();
+			//InetAddress.getByName(args[0]);
+		}/* catch (UnknownHostException e) {
+			error = true;
+		}*/ catch (MalformedURLException e) {
+			error = true;
 		}
-		
+		finally 
+		{}
+	
+		if (error)
+		{
+			if (!preArg.endsWith("/"))
+			{
+				preArg += "/";
+			}
+		}
+
 		//System.out.println("Validating :" + args[0]);
 		URI uri = new URI(preArg);
 		//URI uri = new URI("gopher://serenity.homeunix.org/1/");
@@ -88,6 +108,7 @@ public class Validator {
 		{
 			addOk(vals, category, "Port", "Port is standard (RFC 1453).");
 		}
+		uri = new URI("gopher://" + uri.getHost() + ":" + port + uri.getPath());
 		
 		Socket socks = null;
 		try {
@@ -112,7 +133,7 @@ public class Validator {
 		// Decode selector and type
 		String selector = "";
 		String type = "";
-		if (uri.getPath().length() == 0) {
+		if (uri.getPath().equals("/")) {
 			selector = "";
 			type = "1";
 		} else if (uri.getPath().length() > 2) {
@@ -228,7 +249,11 @@ public class Validator {
 			}
 			
 			// If the node is broken
-			if (!item.getType().equals("i") && !item.getType().equals("8"))
+			if (item.getType().equals("0") || 
+					item.getType().equals("1") || 
+					item.getType().equals("9") || 
+					item.getType().equals("p") || 
+					item.getType().equals("I"))
 			if (GopherClient.requestBinaryfile(item.getHost(), item.getPort(), item.getSelector())==null)
 			{
 				addWarning(vals, category, "Menu", "Broken link to [" + item.getHost() + "][" + item.getPort() + "][" + item.getSelector() + "]",

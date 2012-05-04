@@ -1,7 +1,5 @@
 package gogoph.crawler;
 
-import gogoph.GopherDirectoryEntity;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

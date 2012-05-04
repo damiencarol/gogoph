@@ -17,7 +17,6 @@
 */
 package gogoph;
 
-import java.util.ArrayList;
 
 /**
  * The <code>GopherMenuEntity</code> class represents character strings.
@@ -40,13 +39,13 @@ public class GopherDirectoryEntity {
 	
 	/**
 	 * <p>
-	 * Parses the string argument as a Gopher directory entity.
+	 * Parses the string argument as a <code>Gopher</code> directory entity.
 	 * </p>
 	 * @param line
 	 * 		String to parse.
 	 * @throws InvalidGopherDirectoryEntityException
 	 */
-	public GopherDirectoryEntity(String line) throws InvalidGopherDirectoryEntityException {
+	public GopherDirectoryEntity(String line) {
 	
 		String[] tab = line.split("\t");		
 		for (int i = 0; i < tab.length; i++)

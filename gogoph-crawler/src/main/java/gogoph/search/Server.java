@@ -17,7 +17,7 @@
 */
 package gogoph.search;
 
-import gogoph.GopherDirectoryEntity;
+import gogoph.crawler.GopherDirectoryEntity;
 
 import java.io.File;
 import java.util.ArrayList;

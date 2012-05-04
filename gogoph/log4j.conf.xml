@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration PUBLIC "//UNKNOWN/" "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd" >
+<log4j:configuration>
+	
+	<appender name="File" class="org.apache.log4j.FileAppender" >
+		<connectionSource class=""></connectionSource>
+	</appender>
+	
+	<appender name="Console" class="org.apache.log4j.ConsoleAppender">
+
+		<!--  layout class="org.apache.log4j.SimpleLayout"></layout> -->
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d{ABSOLUTE} %5p %c{1}:%L – %m%n" />
+		</layout>
+	</appender>
+	
+	<appender name="RollingLogFileAppender" class="org.apache.log4j.RollingFileAppender">
+		<param name="maxBackupIndex" value="1" />
+		<param name="File" value="test.log" />
+
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d{ABSOLUTE} %5p %c{1}:%L – %m%n" />
+		</layout>
+
+	</appender>
+	
+	<root>
+		<level value="DEBUG"></level>
+		
+		<appender-ref ref="Console"/>
+		<appender-ref ref="RollingLogFileAppender"/>
+	</root>
+	
+</log4j:configuration>

@@ -35,17 +35,6 @@ import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.index.CorruptIndexException;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.LockObtainFailedException;
-import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
 
 public class RootFileServerRequestHandler implements IGopherRequestHandler {
 
@@ -59,8 +48,6 @@ public class RootFileServerRequestHandler implements IGopherRequestHandler {
 	private String gophertagName;
 	
 	private ArrayList<FileTransaction> fileTransactions = new ArrayList<FileTransaction>();
-	
-	private Directory directory;
 
 	private String host;
 
@@ -79,19 +66,12 @@ public class RootFileServerRequestHandler implements IGopherRequestHandler {
 		this.host = host;
 		this.port = port;
 		
-		// Build index
-		directory = new RAMDirectory();
-		
 		populateDir("", dir, host, port);
 		
 		for (String item : dirNodes.keySet())
 		{
 			logger.debug("Registered : '" + item + "'");
 		}
-		
-		// Register the search node
-		logger.debug("Registered Search node : '/search'");
-		dirNodes.put("/search", new GopherSearchTransactionResult(directory));
 	}
 
 	public GopherTransactionResult process(String selector, String queryString) {
@@ -174,11 +154,9 @@ public class RootFileServerRequestHandler implements IGopherRequestHandler {
 		      
 			
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e);
 			}
 		}
 		else if (result instanceof GopherMenuTransactionResult)
@@ -189,8 +167,6 @@ public class RootFileServerRequestHandler implements IGopherRequestHandler {
 		{
 			ent.setType("9");
 		}
-
-		addDocInternal(directory, ent, content);
 	}
 
 	private void populateDir(String selector, File dest, String host, int port) {
@@ -447,136 +423,5 @@ public class RootFileServerRequestHandler implements IGopherRequestHandler {
 
 	public ArrayList<FileTransaction> getFileTransactions() {
 		return fileTransactions;
-	}
-
-	/*private void addToKnowList(GopherDirectoryEntity root) {
-		try {
-			mutexKnowList.acquire();
-			//knowList.add(root.getHost() + ":" + root.getPort() + root.getSelector());
-			knowList.add(root);
-			
-		} catch (InterruptedException e1) {
-			logger.error(e1);
-		} finally {
-			mutexKnowList.release();
-		}
-	}*/
-	
-	/*private void deleteDocInternal(Directory direct2, GopherDirectoryEntity root) {
-		try {
-			mutexIndex.acquire();
-		
-		// 0. Specify the analyzer for tokenizing text.
-		// The same analyzer should be used for indexing and searching
-		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_35);
-	
-		IndexWriter w = null;
-		IndexWriterConfig conf = new IndexWriterConfig(Version.LUCENE_35, analyzer);
-		conf.setWriteLockTimeout(2000);
-		
-		try {
-		w = new IndexWriter(direct2, conf);
-			
-			
-	
-			BooleanQuery query = new BooleanQuery();
-			TermQuery q1 = new TermQuery(new Term("host", root.getHost()));
-			query.add(q1, Occur.MUST);
-			TermQuery q2 = new TermQuery(new Term("port", new Integer(root.getPort()).toString()));
-			query.add(q2, Occur.MUST);
-			TermQuery q3 = new TermQuery(new Term("selector", root.getSelector()));
-			query.add(q3, Occur.MUST);
-			try {
-				w.deleteDocuments(query);
-			} catch (CorruptIndexException e) {
-				logger.error(e);
-			} catch (IOException e) {
-				logger.error(e);
-			}
-			
-		} catch (CorruptIndexException e) {
-			logger.error(e);
-		} catch (LockObtainFailedException e) {
-			logger.error(e);
-		} catch (IOException e) {
-			logger.error(e);
-		} 
-		finally
-		{
-			// Close
-			try {
-				if (w != null)
-					w.close();
-			} catch (CorruptIndexException e) {
-				logger.error(e);
-			} catch (IOException e) {
-				logger.error(e);
-			}
-		}
-		
-		} catch (InterruptedException e) {
-			logger.error(e);
-		} 
-		finally
-		{
-			mutexIndex.release();
-		}
-	}*/
-
-	private static void addDocInternal(Directory direct2, GopherDirectoryEntity root, String content)  
-	{		
-		
-			// 0. Specify the analyzer for tokenizing text.
-			// The same analyzer should be used for indexing and searching
-			Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_35);
-	
-			IndexWriter w = null;
-			IndexWriterConfig conf = new IndexWriterConfig(Version.LUCENE_35, analyzer);
-			conf.setWriteLockTimeout(2000);
-	
-			try
-			{
-				w = new IndexWriter(direct2, conf);
-	
-				Document doc = new Document();
-				doc.add(new Field("type", root.getType(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
-				doc.add(new Field("title", root.getUsername(), Field.Store.YES, Field.Index.ANALYZED));
-				doc.add(new Field("host", root.getHost(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
-				doc.add(new Field("port", new Integer(root.getPort()).toString(), Field.Store.YES, Field.Index.ANALYZED));
-				doc.add(new Field("selector", root.getSelector(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
-				doc.add(new Field("content", content, Field.Store.YES, Field.Index.ANALYZED));
-		
-				doc.add(new Field("hash", root.getHost() + "|" + root.getPort() + "|" + root.getSelector(), 
-						Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
-			
-				try {
-					w.addDocument(doc);
-				} catch (CorruptIndexException e) {
-					logger.error(e);
-				} catch (IOException e) {
-					logger.error(e);
-				}
-			
-			} catch (CorruptIndexException e) {
-				logger.error(e);
-			} catch (LockObtainFailedException e) {
-				logger.error(e);
-			} catch (IOException e) {
-				logger.error(e);
-			}
-			finally
-			{
-						// Close
-				if (w != null)
-					try {
-						w.close();
-					} catch (CorruptIndexException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-			}
 	}
 }
