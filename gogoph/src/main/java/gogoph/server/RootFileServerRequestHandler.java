@@ -131,7 +131,6 @@ public class RootFileServerRequestHandler implements GopherRequestHandler {
 		
 		// Index it
 		GopherDirectoryEntity ent = new GopherDirectoryEntity();
-		ent.setExtra(null);
 		ent.setHost(host);
 		ent.setPort(port);
 		ent.setSelector(selectorRef + "/" + dest.getName());
@@ -310,45 +309,60 @@ public class RootFileServerRequestHandler implements GopherRequestHandler {
 	      dis = new BufferedReader(bis);
 	      String line = dis.readLine();
 	      while (line != null) {
-
+	    	  GopherDirectoryEntity ent = null;
 	    	  // If there are no TAB
 	    	  if (line.indexOf("\t") == -1)
-	    		  taby.add(newComment(line));
+	    		  ent = newComment(line);
 	    	  else {
 	    		  String[] table = line.split("\t");
-	    		  if (table.length == 4)
-	    			  taby.add(new GopherDirectoryEntity(line));
+	    		  if (table.length == 4) {
+	    			  ent = new GopherDirectoryEntity();
+	    			  ent.setType(table[0].substring(0 ,1));
+	    			  ent.setUsername(table[0].substring(1));
+	    			  ent.setSelector(table[1]);
+	    			  ent.setHost(table[2].trim());
+	    			  ent.setPort(Integer.parseInt(table[3].trim()));
+	  		    	}
 	    		  else if (table.length == 2)
 	    		  {
 	    			  String node = table[1].trim();
 	    			  if (!node.startsWith("/"))
 	    				  node = "/" + node;
-	    			  taby.add(new GopherDirectoryEntity(table[0] + "\t" + ref + node + "\t" + host + "\t" + port));
+	    			  ent = new GopherDirectoryEntity();
+	    			  ent.setType(table[0].substring(0, 1));
+	    			  ent.setUsername(table[0].substring(1));
+	    			  ent.setSelector(ref + node);
+	    			  ent.setHost(host);
+	    			  ent.setPort(port);
 	    		  }
 	    		  else if (table.length == 1) // manage gophertag
 	    		  {  
-	    			  GopherDirectoryEntity entity = new GopherDirectoryEntity(line + "\t" + host + "\t" + port);
-	    			  if (entity.getSelector().trim().equals(""))
+	    			  ent = new GopherDirectoryEntity();
+	    			  ent.setType(line.substring(0, 1));
+	    			  ent.setHost(host);
+	    			  ent.setPort(port);
+	    			  if (ent.getSelector().trim().equals(""))
 	    			  {
-	    				  String can = entity.getUsername().trim();
+	    				  String can = ent.getUsername().trim();
 	    				  if (!can.startsWith(File.separator))
 	    					  can = "/" + can;
 	    				  File gophertag = new File(mapfile.getParentFile().getPath() + can + File.separator + gophertagName);
 	    				  if (gophertag.exists())
 	    				  {
-	    					  entity.setSelector(ref + can);
+	    					  ent.setSelector(ref + can);
 	    					  FileReader fr = new FileReader(gophertag);
 	    					  String tag = new BufferedReader(fr).readLine();
-	    					  entity.setUsername(tag);
+	    					  ent.setUsername(tag);
 	    					  fr.close();
 	    				  }
 	    			  }
-	    			  taby.add(entity);
 	    		  }
 	    		  else
-	    			  throw new Exception("ERROR IN GOPHERMAP");	    		  
+	    			  throw new Exception("ERROR IN GOPHERMAP");
+	    		
+	    		  
 	    	  }
-	    	  
+	    	  taby.add(ent);
 			line = dis.readLine();
 	      } // dispose all the resources after using them.
 	      dis.close();
