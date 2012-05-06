@@ -114,9 +114,19 @@ public class CrawlerSiteThread implements Runnable {
 		}
 		else if (root.getType().equals("0"))
 			crawlGeneric(direct, node);
+
+		else if (root.getType().equals("d"))
+			crawlGeneric(direct, node);
 		
 		else if (root.getType().equals("I"))
 			crawlGeneric(direct, node);
+		
+		else
+			{
+			deleteDocInternal(direct, site.getHost(), site.getPort(), node.getSelector());
+			addDocInternal(direct, node.getType(), node.getUsername(), site.getHost(), site.getPort(), node.getSelector(), node.getSelector());   
+			
+			}
 	}
 
 	private void crawlGeneric(Directory direct, CrawlerSiteNode node) {
@@ -307,24 +317,17 @@ public class CrawlerSiteThread implements Runnable {
 			  		!item.getType().equals("3") &&
 			  		!item.getType().equals("7")) 
 		    {
-	    		// no error or info node ("i") or index node
-	    		CrawlerSite distSite;
-	    		distSite = getSiteFormSitesMutex(item.getHost(), item.getPort());
-	    		distSite.putNode(new CrawlerSiteNode(item.getType(), item.getUsername(), item.getSelector()));
-	    		
-	    		
-	    		/*try {
-	    			if (!item.getHost().equals("(NULL)") &&
-	    					!item.getHost().equals("error.host"))
-	    			{
-						if (InetAddress.getByName(item.getHost()) != null)
-							crawler.addToPool(item);
-	    			}
+	    		try {
+		    		// no error or info node ("i") or index node
+		    		CrawlerSite distSite;
+		    		distSite = getSiteFormSitesMutex(item.getHost(), item.getPort());
+		    		distSite.putNode(new CrawlerSiteNode(item.getType(), item.getUsername(), item.getSelector()));
+
 				} catch (Exception e) {
-					logger.error(">>> CRAWLED : [" + root.getHost() + "][" + root.getPort() + "][" + root.getType() + "][" + root.getSelector() + "]");
+					logger.error(">>> ERROR IN CRAWLED : [" + root.getHost() + "][" + root.getPort() + "][" + root.getType() + "][" + root.getSelector() + "]");
 					logger.error(">>> CRAWLED : [" + item.getHost() + "][" + item.getPort() + "][" + item.getType() + "][" + item.getSelector() + "]");
 				    logger.error(e);
-				}*/
+				}
 		    }
 	    	else if (item.getType().equals("h"))
 	    	{

@@ -3,10 +3,13 @@ package gogoph.crawler;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
@@ -224,19 +227,17 @@ public class CrawlerBySite {
         for (CrawlerSite site : sites.values())
 		{
 			  if (site.getNbSelector() > 0)
-				  try {
-						  if (InetAddress.getByName(site.getHost()) != null) 
-						  {
-							  disc.write(site.getHost().trim().toLowerCase());
-							  if (site.getPort() != 70)
-								  disc.write(":" + site.getPort());
-							  disc.write("\r\n");
-						  }
-					  } catch(Exception e)
-					 { logger.error(e);}
-				}
-			  disc.flush();
-			  disc.close();
+			  {						  
+				  disc.write(site.getHost().trim().toLowerCase());
+				  if (site.getPort() != 70)
+					  disc.write(":" + site.getPort());
+				  disc.write("\r\n");
+			  }
+		}
+        disc.flush();
+        disc.close();
 		}
 	}
+	
+	
 }

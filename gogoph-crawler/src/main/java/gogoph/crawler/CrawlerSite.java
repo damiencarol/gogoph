@@ -19,7 +19,11 @@ package gogoph.crawler;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -174,6 +178,21 @@ public class CrawlerSite {
 			siteDir.mkdir();
 		}
 		
+		// Try to get "CAPS.txt"
+		if (getNbVisited() > 5)
+		{
+			File caps = GopherClient.requestBinaryfile(host, port, "/caps.txt");
+			if (caps != null){
+				logger.info(">>> CRAWLED : [" + getHost() + "][" + getPort() + "][" + "0" + "][" + "/caps.txt" + "]");
+				try {
+					copyFile(caps, new File(siteDir.getPath() + File.separator + "caps.txt"));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
 		// Save on file 'selectors' all nodes got
 		{
 		File sitetextFile = new File(siteDir.getPath() + File.separator + "selectors");
@@ -182,7 +201,8 @@ public class CrawlerSite {
 	      disc = new BufferedWriter(new FileWriter(sitetextFile));
 	      for (CrawlerSiteNode node : this.getSelectors())
 			{
-	    	  disc.write("[" + node.getType() + "]" + node.getSelector() + " => '" + node.getUsername() + "'\r\n");
+	    	  //disc.write("[" + node.getType() + "]" + node.getSelector() + " => '" + node.getUsername() + "'\r\n");
+	    	  disc.write(node.getSelector() + "\t" + node.getType() + "\t" + node.getUsername() + "\r\n");
 			}
 	      disc.flush();
 	      disc.close();
@@ -209,4 +229,30 @@ public class CrawlerSite {
 	    }
 	}
 	
+	public static void copyFile(File sourceFile, File destFile) throws IOException {
+	    if(!destFile.exists()) {
+	        destFile.createNewFile();
+	    }
+
+	    FileChannel source = null;
+	    FileChannel destination = null;
+	    try {
+	        source = new FileInputStream(sourceFile).getChannel();
+	        destination = new FileOutputStream(destFile).getChannel();
+
+	        // previous code: destination.transferFrom(source, 0, source.size());
+	        // to avoid infinite loops, should be:
+	        long count = 0;
+	        long size = source.size();              
+	        while((count += destination.transferFrom(source, count, size-count))<size);
+	    }
+	    finally {
+	        if(source != null) {
+	            source.close();
+	        }
+	        if(destination != null) {
+	            destination.close();
+	        }
+	    }
+	}
 }
