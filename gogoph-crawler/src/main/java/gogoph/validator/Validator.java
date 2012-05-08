@@ -185,8 +185,9 @@ public class Validator {
 	private static void checkMenu(ArrayList<ValidationPoint> vals, String host, int port, String selector, String uri) {
 		String category = "Document";
 		
+		File rawFile = GopherClient.requestBinaryfile(host, port, selector);
 		
-		ArrayList<GopherDirectoryEntity> entries = GopherClient.request(host, port, selector);
+		ArrayList<GopherDirectoryEntity> entries = GopherClient.readFromFile(rawFile);
 		if (entries == null) 
 		{
 				addError(vals, category, "Menu", "Unable to get the document.", 

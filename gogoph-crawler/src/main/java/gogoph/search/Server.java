@@ -20,7 +20,21 @@ package gogoph.search;
 import gogoph.crawler.GopherDirectoryEntity;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopScoreDocCollector;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.util.Version;
 
 //import org.apache.log4j.Logger;
 
@@ -31,68 +45,62 @@ public class Server {
 
 	/**
 	 * @param args
+	 * @throws IOException 
+	 * @throws ParseException 
 	 */
-	public static void main(String[] args) {
-		/*
-		// Set up a simple configuration that logs on the console.
-        BasicConfigurator.configure();
+	public static void main(String[] args) throws IOException, ParseException {
+		
+		Directory index;
+    	index = new SimpleFSDirectory(new File(args[0]));
+		
+		String searchTerms = args[1];
+		
+		
+		StandardAnalyzer analyzer;
+		// 0. Specify the analyzer for tokenizing text.
+	    //    The same analyzer should be used for indexing and searching
+	    analyzer = new StandardAnalyzer(Version.LUCENE_35);
 
-		// Configure the server.
-		ServerBootstrap bootstrap = new ServerBootstrap(
-				new NioServerSocketChannelFactory(Executors
-						.newCachedThreadPool(), Executors.newCachedThreadPool()));
+	    QueryParser parser = new QueryParser(Version.LUCENE_35, "content", analyzer);
+	    Query query = parser.parse(searchTerms);
+	    
+	    // 3. search
+	    int hitsPerPage = 40;
+	    IndexReader reader = IndexReader.open(index);
+	    IndexSearcher searcher = new IndexSearcher(reader);
+	    TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage, true);
+	    searcher.search(query, collector);
+	    ScoreDoc[] hits = collector.topDocs().scoreDocs;
+	   
+	    // 4. display results
+	    SearchResult[] tab = new SearchResult[hits.length];
+	    //System.out.println("Found " + hits.length + " hits.");
+	    for(int i=0;i<hits.length;++i) {
+	      int docId = hits[i].doc;
+	      Document d = searcher.doc(docId);
+	      //System.out.println((i + 1) + ". " + d.get("title"));
+	      
+	      GopherDirectoryEntity gop = new GopherDirectoryEntity();
+	      gop.setType(d.get("type"));
+	      gop.setUsername(d.get("title"));
+	      gop.setHost(d.get("host"));
+	      gop.setPort(Integer.parseInt(d.get("port")));
+	      gop.setSelector(d.get("selector"));
+	      
+	      
+	      tab[i] = new SearchResult(gop.getUsername(), gop, hits[i].score);
+	    }
 
-		// Load index
-		IConfiguration lControllerFactory = new IConfiguration(new File(args[0]));
-		
-		GopherContext ctx = new GopherContext(lControllerFactory, "127.0.0.1");
-		
-		// Set up the event pipeline factory.
-		bootstrap.setPipelineFactory(new GopherPipelineFactory(ctx));
-
-		// Bind and start to accept incoming connections.
-		bootstrap.bind(new InetSocketAddress(70));
-		
-		try {
-			System.in.read();
-		} catch (IOException e) {
-		} finally {
-			logger.info("Shutting down server");
-			bootstrap.releaseExternalResources();
-		}*/
-		String gopher_query = args[1];
-		
-		// Load index
-		IConfiguration lControllerFactory = new IConfiguration(new File(args[0]));
-		for (GopherDirectoryEntity item : writeSearch(lControllerFactory, gopher_query))
-		{
-			System.out.print(item.getType() + item.getUsername() + "\t" +
-					item.getSelector() + "\t" +
-					item.getHost()  + "\t" +
-					item.getPort() + "\r\n");
-		}
-	}
-	
-	private static ArrayList<GopherDirectoryEntity> writeSearch(IConfiguration fConfiguration, String searchTerms) {
+	    // searcher can only be closed when there
+	    // is no need to access the documents any more.
+	    searcher.close();
+	    reader.close();
     	
-    	
-    	SearchResult[] tib = fConfiguration.search(searchTerms);
-    	
-    	if (tib == null) {
-    		//return errorMenu("Invalid Selector");
-    		ArrayList<GopherDirectoryEntity> list = new ArrayList<GopherDirectoryEntity>();
-    		GopherDirectoryEntity entError;
-    		entError = newComment("Invalid Selector");
-    		entError.setType("3");
-    		list.add(entError);
-    		return list;
-    	}
-    	
-    	ArrayList<GopherDirectoryEntity> tab;
-		tab = new ArrayList<GopherDirectoryEntity>();
-		for (int i=0; i< tib.length; i++)
+    	ArrayList<GopherDirectoryEntity> tib;
+		tib = new ArrayList<GopherDirectoryEntity>();
+		for (int i=0; i< tab.length; i++)
     	{
-			SearchResult item = tib[i];
+			SearchResult item = tab[i];
 			GopherDirectoryEntity node = item.getEntity();
 			node.setUsername("(Score: " + item.getScore() + ") " + item.getTitle());
 			
@@ -102,13 +110,22 @@ public class Server {
 			//GopherDirectoryEntity nodeComment2 = 
 			//	GopherDirectoryEntity.newComment(node.getUserName());
 
-			tab.add(node);
-			tab.add(nodeComment);
+			tib.add(node);
+			tib.add(nodeComment);
 			//tab.add(nodeComment2);
 	    }
-    	
-		return tab;
+		index.close();
+	
+		// Load index
+		for (GopherDirectoryEntity item : tib)
+		{
+			System.out.print(item.getType() + item.getUsername() + "\t" +
+					item.getSelector() + "\t" +
+					item.getHost()  + "\t" +
+					item.getPort() + "\r\n");
+		}
 	}
+	
 	
 	public static GopherDirectoryEntity newComment(String message)
 	{

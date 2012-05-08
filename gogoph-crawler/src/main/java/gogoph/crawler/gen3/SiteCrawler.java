@@ -1,6 +1,7 @@
 package gogoph.crawler.gen3;
 
 import gogoph.crawler.CrawlerSiteNode;
+import gogoph.crawler.GopherClient;
 import gogoph.crawler.GopherDirectoryEntity;
 
 import java.io.BufferedReader;
@@ -19,6 +20,8 @@ public class SiteCrawler {
 	private static final Logger logger = Logger.getLogger(
 				SiteCrawler.class.getName());
 		
+	private static final String portSep = ":";
+
 	/**
 	 * @param args
 	 * @throws IOException 
@@ -57,7 +60,7 @@ public class SiteCrawler {
 		}
 		
 		// Get site dir
-    	File folder = new File(crawlDir.getPath() + File.separator + host + ":" +  port);
+    	File folder = new File(crawlDir.getPath() + File.separator + host + portSep +  port);
     	if (!folder.exists())
 		{
     		folder.mkdir();
@@ -65,7 +68,8 @@ public class SiteCrawler {
     	
     	// Try to read selector file
     	File textFile = new File(folder.getPath() + File.separator + "selectors");
-        textFile.createNewFile();
+    	if (!textFile.exists())
+    		textFile.createNewFile();
         HashMap<String, CrawlerSiteNode> tab_selectors = new HashMap<String, CrawlerSiteNode>();
         BufferedReader dis = null;
 	    try {
@@ -88,14 +92,16 @@ public class SiteCrawler {
 	    }
 	    
 	    // Hack if there no main selector
-	    if (!tab_selectors.containsKey(""))
+	    if (!tab_selectors.containsKey("") && 
+	    		GopherClient.requestBinaryfile(host, port, "") != null)
   	  	{
 	    	CrawlerSiteNode node = new CrawlerSiteNode("1", "ROOT", "");
 	    	tab_selectors.put(node.getSelector(), node);
   		  	logger.info("SELECTOR:" + node.getSelector());
   	  	}
 	    // Hack if there no caps selector
-	    if (!tab_selectors.containsKey("/caps.txt"))
+	    if (!tab_selectors.containsKey("/caps.txt")&& 
+	    		GopherClient.requestBinaryfile(host, port, "/caps.txt") != null)
   	  	{
 	    	CrawlerSiteNode node = new CrawlerSiteNode("0", "CAPS", "/caps.txt");
 	    	tab_selectors.put(node.getSelector(), node);
@@ -121,10 +127,7 @@ public class SiteCrawler {
 				th.join();
 				if (sith.isOk())
 				{
-					String path = new String(Base64.encode(node.getType() + node.getSelector()));
-					
-					saveContent(folder.getPath() + File.separator + path + ".link", sith.getContent());
-				
+					// If it's menu seed it !
 					if (node.getType().equals("1"))
 					{
 						for (GopherDirectoryEntity item : sith.getNodes())
@@ -162,7 +165,7 @@ public class SiteCrawler {
 	private static void seed(String pathfile, GopherDirectoryEntity node) throws IOException {
 		
 		logger.info("SEEDING [" + node.getHost() + "][" + node.getPort() + "][" + node.getType() + "][" + node.getSelector() + "]");
-		File folder = new File(pathfile + File.separator + node.getHost() + ":" + node.getPort());
+		File folder = new File(pathfile + File.separator + node.getHost() + portSep + node.getPort());
 		if (!folder.exists())
 			folder.mkdir();
 		File file = new File(folder.getPath() + File.separator + "selectors");
@@ -173,7 +176,7 @@ public class SiteCrawler {
         disc.close();
 	}
 
-	private static void saveContent(String pathfile, String content) throws IOException {
+	/*private static void saveContent(String pathfile, String content) throws IOException {
 		logger.info("SAVING CONTENT '" + pathfile + "' size=" + content.length());
 		File file = new File(pathfile);
 		file.createNewFile();
@@ -182,6 +185,6 @@ public class SiteCrawler {
         disc.write(content);
         disc.flush();
         disc.close();
-	}
+	}*/
 
 }

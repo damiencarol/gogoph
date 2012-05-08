@@ -3,6 +3,7 @@ package gogoph.crawler;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -14,104 +15,23 @@ import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
+/**
+ * 
+ * @author D.Carol
+ *
+ */
 public class GopherClient {
 	
     private static final Logger logger = Logger.getLogger(
     		GopherClient.class.getName());
 
-    /*public static ArrayList<GopherDirectoryEntity> request(URI uri) throws Exception {
-    	
-    	// Check that url is gopher
-    	if (!uri.getScheme().equals("gopher"))
-    		throw new URISyntaxException("Invalid scheme : " + uri.getScheme(), "The scheme must be 'gopher'");
-    	
-    	String host = uri.getHost();
-    	int port = uri.getPort();
-    	if (port == -1)
-    	{
-    		port = 70;
-    	}
-    	
-    	String path = uri.getPath();
-    	String selector;
-    	if (path.length() < 3)
-    	{
-    		selector = "/";
-    	}
-    	else
-    		selector = path.substring(3);
-    	
-    	
-    	return request(host, port, selector);
-	}*/
-    
-	public static ArrayList<GopherDirectoryEntity> request(String host, int port, String selector) {
-
-		try {
-
-			Socket mySocket = null;
-			PrintWriter out = null;
-			BufferedReader in = null;
-			
-			mySocket = new Socket(host, port);
-			out = new PrintWriter(mySocket.getOutputStream(), true);
-			in = new BufferedReader(new InputStreamReader(mySocket
-					.getInputStream()));
-			mySocket.setSoTimeout(5000);
-			
-			// Send blank one
-			out.println(selector); 
-			String line = in.readLine();
-			ArrayList<GopherDirectoryEntity> list = new ArrayList<GopherDirectoryEntity>();
-			long i = 1;
-			while (line != null)
-			{
-				if (!line.equals("."))
-				{
-					try
-					{
-						// Hack for i nodes
-						/*if (line.startsWith("i"))
-						{
-							if (line.length() )
-						}
-						else*/
-						{
-							GopherDirectoryEntity item = null;
-							item = new GopherDirectoryEntity(line);
-							list.add(item);
-						}
-					} 
-					catch (Exception e) 
-					{
-						logger.error("Invalid Menu Entity in gopher://" + host + ":" + port + "/1" + selector);
-						logger.error("Invalid Menu Entity in [" + host + "][" + port + "][1][" + selector + "]");
-						logger.error("Line(" + i + ") = '" + line + "'");
-						logger.error(e);
-					}	
-				}
-				line = in.readLine();
-				i++;
-			}
-			
-			mySocket.shutdownOutput();
-			//Thread.sleep(1000);
-			mySocket.close();
-			//Thread.sleep(1000);
-			return list;
-			
-		} catch (UnknownHostException e) {
-			logger.error(e);
-		} catch (IOException e) {
-			logger.error(e);
-		} 
-
-		logger.error("In node [" + host + "][" + port + "][1][" + selector + "]");
-		return null;
-	}
-
-
-
+    /**
+     * 
+     * @param host
+     * @param port
+     * @param selector
+     * @return
+     */
 	public static String requestTextEntity(String host, int port, String selector) {
 	
 		try {
@@ -183,7 +103,7 @@ public class GopherClient {
 			
 			
 			
-			File tmpFile = File.createTempFile(host + "-" + port + "-", "");
+			File tmpFile = File.createTempFile(host + "-" + port + "-", null);
 			RandomAccessFile nFile = new RandomAccessFile(tmpFile, "rw");
 			FileOutputStream file = new FileOutputStream(tmpFile);
 			byte[] b = new byte[1024];
@@ -207,6 +127,55 @@ public class GopherClient {
 		}
 		logger.error("In node [" + host + "][" + port + "][?][" + selector + "]");
 		
+		return null;
+	}
+	
+	public static ArrayList<GopherDirectoryEntity> readFromFile(File menufile) {
+
+		try {
+			BufferedReader in = null;
+			in = new BufferedReader(new FileReader(menufile));
+
+			String line = in.readLine();
+			ArrayList<GopherDirectoryEntity> list = new ArrayList<GopherDirectoryEntity>();
+			long i = 1;
+			while (line != null)
+			{
+				if (!line.equals("."))
+				{
+					try
+					{
+						// Hack for i nodes
+						/*if (line.startsWith("i"))
+						{
+							if (line.length() )
+						}
+						else*/
+						{
+							GopherDirectoryEntity item = null;
+							item = new GopherDirectoryEntity(line);
+							list.add(item);
+						}
+					} 
+					catch (Exception e) 
+					{
+						logger.error("Invalid Menu Entity in [" + menufile.getName() + "]");
+						logger.error("Line(" + i + ") = '" + line + "'");
+						logger.error(e);
+					}	
+				}
+				line = in.readLine();
+				i++;
+			}
+			return list;
+			
+		} catch (UnknownHostException e) {
+			logger.error(e);
+		} catch (IOException e) {
+			logger.error(e);
+		} 
+
+		logger.error("Error in Menu [" + menufile.getName() + "]");
 		return null;
 	}
 }

@@ -18,6 +18,8 @@ public class SeedsCrawler {
 
 	private static final Logger logger = Logger.getLogger(
 			SeedsCrawler.class.getName());
+	
+	private static String portSep = ":";
 
 	/**
 	 * @param args
@@ -83,7 +85,7 @@ public class SeedsCrawler {
 	    	SeedThread sdth = seedRun.get(i);
 	    	try {
 				th.join();
-				File folder = new File(crawlDir.getPath() + File.separator + host + ":" +  port);
+				File folder = new File(crawlDir.getPath() + File.separator + host + portSep +  port);
 				if (!sdth.isOk())
 				{
 					if (folder.exists())
