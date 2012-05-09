@@ -95,7 +95,8 @@ public class SelectorIndexer {
 		// Closing directory
 		dir.close();
 		
-		rawFile.deleteOnExit();
+		if (rawFile != null)
+			rawFile.deleteOnExit();
 	}
 	private static File rawFile;
 	

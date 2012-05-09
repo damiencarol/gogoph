@@ -33,19 +33,9 @@ public class SiteCrawler {
         //BasicConfigurator.configure();
         DOMConfigurator.configure("log4j.conf.xml");
 		
-		String host;
-		int port;
-		if (args[0].contains(":"))
-		{
-			port = Integer.parseInt(args[0].split(":")[1]);
-			host = args[0].split(":")[0];
-		}
-		else
-		{
-			port = 70;
-			host = args[0];
-		}
-		int sleepingtime = Integer.parseInt(args[1]);
+        String host = args[0].trim();
+		int port = Integer.parseInt(args[1].trim());
+		int sleepingtime = Integer.parseInt(args[2].trim());
 
     	logger.info("HOST:" + host);
     	logger.info("PORT:" + port);

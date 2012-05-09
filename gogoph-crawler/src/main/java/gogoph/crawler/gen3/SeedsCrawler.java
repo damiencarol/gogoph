@@ -112,8 +112,7 @@ public class SeedsCrawler {
         for (CrawlerSite site : crawledSites.values())
 		{					  
 			disc.write(site.getHost().trim().toLowerCase());
-			if (site.getPort() != 70)
-				disc.write(":" + site.getPort());
+			disc.write(":" + site.getPort());
 			disc.write("\r\n");			  
 		}
         disc.flush();
