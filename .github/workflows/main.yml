@@ -1,0 +1,49 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: semgrep-action
+        # You may pin to the exact commit or the version.
+        # uses: returntocorp/semgrep-action@1625176a885e4de9e7c12693ff3078c8236a3a55
+        uses: returntocorp/semgrep-action@v1
+        with:
+          # Rules and patterns to search for with semgrep.
+
+          #config: # optional
+          # Access token to post results to the semgrep app.
+
+          #publishToken: # optional
+          # Deployment ID on semgrep app.
+
+          #publishDeployment: # optional
+          # Set to 1 if you want a semgrep.sarif file to be written with all semgrep findings.
+
+          generateSarif: true # optional
+          # GitHub Actions events where the action should always report success, even if findings were found.
+          # `auditOn: push` will scan for findings but not fail on push events.
+          # You can set multiple event names with a space-separated string.
+
+          auditOn: push
