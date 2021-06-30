@@ -1,49 +1,51 @@
-# This is a basic workflow to help you get started with Actions
+name: Semgrep
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  # Scan changed files in PRs, block on new issues only (existing issues ignored)
+  pull_request: {}
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  # Scan all files on branches, block on any issues
+  # push:
+  #   branches: ["master", "main"]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  semgrep:
+    name: Scan
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    # Skip any PR created by dependabot to avoid permission issues
+    if: (github.actor != 'dependabot[bot]')
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Fetch project source
       - uses: actions/checkout@v2
 
-      - name: semgrep-action
-        # You may pin to the exact commit or the version.
-        # uses: returntocorp/semgrep-action@1625176a885e4de9e7c12693ff3078c8236a3a55
-        uses: returntocorp/semgrep-action@v1
+      - uses: returntocorp/semgrep-action@v1
         with:
-          # Rules and patterns to search for with semgrep.
+          config: >- # more at semgrep.dev/explore
+            p/security-audit
+            p/secrets
 
-          #config: # optional
-          # Access token to post results to the semgrep app.
+        # == Optional settings in the `with:` block
 
-          #publishToken: # optional
-          # Deployment ID on semgrep app.
+        # Instead of `config:`, use rules set in Semgrep App.
+        # Get your credentials from semgrep.dev/manage/settings.
+        #   publishDeployment: ${{ secrets.SEMGREP_DEPLOYMENT_ID }}
+        #   publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
 
-          #publishDeployment: # optional
-          # Set to 1 if you want a semgrep.sarif file to be written with all semgrep findings.
+        # Never fail the build due to findings on pushes.
+        # Instead, just collect findings for semgrep.dev/manage/findings
+        #   auditOn: push
 
-          generateSarif: true # optional
-          # GitHub Actions events where the action should always report success, even if findings were found.
-          # `auditOn: push` will scan for findings but not fail on push events.
-          # You can set multiple event names with a space-separated string.
+        # Upload findings to GitHub Advanced Security Dashboard [step 1/2]
+        # See also the next step.
+          generateSarif: "1"
 
-          auditOn: push
+        # Change job timeout (default is 1800 seconds; set to 0 to disable)
+        # env:
+        #   SEMGREP_TIMEOUT: 300
+
+      # Upload findings to GitHub Advanced Security Dashboard [step 2/2]
+      - name: Upload SARIF file for GitHub Advanced Security Dashboard
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: semgrep.sarif
+        if: always()
